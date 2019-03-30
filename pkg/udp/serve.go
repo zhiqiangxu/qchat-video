@@ -91,7 +91,6 @@ func (sv *Serve) Stop() (err error) {
 
 	swapped := atomic.CompareAndSwapInt32(&sv.stopped, 0, 1)
 	if !swapped {
-		sv.Unlock()
 		err = fmt.Errorf("already stopped")
 		return
 	}
