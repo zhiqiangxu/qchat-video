@@ -2,16 +2,20 @@ package udp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
+
+	"github.com/zhiqiangxu/qchat/pkg/instance"
 
 	"github.com/zhiqiangxu/qchat/pkg/core"
-	"github.com/zhiqiangxu/qrpc"
 )
 
 // Server for udp stream server
 type Server struct {
 	sync.Mutex
+	shutdown    int32
 	serves      map[int16]*Serve
 	userSession map[string]int16
 	wg          sync.WaitGroup
@@ -52,8 +56,42 @@ type (
 	}
 )
 
+var (
+	errShutdown = errors.New("already shutdown")
+)
+
+// Shutdown server
+func (s *Server) Shutdown() (err error) {
+	swapped := atomic.CompareAndSwapInt32(&s.shutdown, 0, 1)
+	if !swapped {
+		err = errShutdown
+		return
+	}
+
+	s.Lock()
+
+	for _, serve := range s.serves {
+		err = serve.Stop()
+		if err != nil {
+			instance.Logger().Errorln("Stop err in Shutdown", err)
+			return
+		}
+	}
+
+	s.serves = make(map[int16]*Serve)
+	s.userSession = make(map[string]int16)
+	s.Unlock()
+
+	return
+}
+
 // AVStart for start
 func (s *Server) AVStart(input AVStartInput) (r AVStartOutput) {
+
+	if atomic.LoadInt32(&s.shutdown) != 0 {
+		r.SetBase(core.ErrAPI, errShutdown.Error())
+		return
+	}
 
 	serve := NewServe(input)
 
@@ -77,9 +115,12 @@ func (s *Server) AVStart(input AVStartInput) (r AVStartOutput) {
 	}
 	s.Unlock()
 
-	qrpc.GoFunc(&s.wg, func() {
-		serve.Start()
-	})
+	err := serve.Start()
+	if err != nil {
+		r.SetBase(core.ErrAPI, err.Error())
+		return
+	}
+
 	return
 }
 
@@ -97,6 +138,11 @@ type (
 
 // AVEnd for end
 func (s *Server) AVEnd(input AVEndInput) (r AVEndOutput) {
+	if atomic.LoadInt32(&s.shutdown) != 0 {
+		r.SetBase(core.ErrAPI, errShutdown.Error())
+		return
+	}
+
 	s.Lock()
 	if _, ok := s.serves[input.Port]; !ok {
 		r.SetBase(core.ErrSessionNotExists, "session not exists")
