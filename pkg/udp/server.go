@@ -99,6 +99,12 @@ func (s *Server) AVStart(input AVStartInput) (r AVStartOutput) {
 		r.SetBase(core.ErrAPI, "no port available")
 		return
 	}
+	defer func() {
+		if !r.OK() {
+			ln.Close()
+		}
+	}()
+
 	serve := NewServe(input, ln)
 	port := int16(ln.LocalAddr().(*net.UDPAddr).Port)
 
@@ -121,13 +127,9 @@ func (s *Server) AVStart(input AVStartInput) (r AVStartOutput) {
 		s.userSession[uid] = port
 	}
 
-	err = serve.Start()
+	serve.Start()
 	s.Unlock()
 
-	if err != nil {
-		r.SetBase(core.ErrAPI, err.Error())
-		return
-	}
 	r.Port = port
 
 	return

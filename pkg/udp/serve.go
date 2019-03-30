@@ -28,7 +28,7 @@ func NewServe(input AVStartInput, ln *net.UDPConn) *Serve {
 }
 
 // Start serve
-func (sv *Serve) Start() (err error) {
+func (sv *Serve) Start() {
 
 	qrpc.GoFunc(&sv.wg, sv.handlePackets)
 
@@ -83,19 +83,18 @@ func (sv *Serve) RangeUIDs(f func(string)) {
 
 // Stop serve
 func (sv *Serve) Stop() (err error) {
-	sv.Lock()
-	if sv.ln == nil {
-		sv.Unlock()
-		err = fmt.Errorf("not started yet")
+
+	err = sv.ln.Close()
+	if err != nil {
 		return
 	}
+
 	swapped := atomic.CompareAndSwapInt32(&sv.stopped, 0, 1)
 	if !swapped {
 		sv.Unlock()
 		err = fmt.Errorf("already stopped")
 		return
 	}
-	sv.Unlock()
 
 	sv.wg.Wait()
 
