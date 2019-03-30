@@ -3,22 +3,18 @@ package api
 import (
 	"net/http"
 
+	"github.com/zhiqiangxu/qchat-video/pkg/udp"
+
 	"github.com/gin-gonic/gin"
 	"github.com/zhiqiangxu/qchat-video/pkg/instance"
-	"github.com/zhiqiangxu/qchat-video/pkg/udp"
-	"github.com/zhiqiangxu/qchat/pkg/core"
 )
 
 type (
 	// AVEndInput for input
-	AVEndInput struct {
-		Session udp.Session
-	}
+	AVEndInput udp.AVEndInput
 
 	// AVEndOutput for output
-	AVEndOutput struct {
-		core.BaseResp
-	}
+	AVEndOutput udp.AVEndOutput
 )
 
 // AVEnd for av end
@@ -30,11 +26,7 @@ func AVEnd(c *gin.Context) {
 		return
 	}
 
-	var output AVEndOutput
-	err := instance.UDPServer().AVEnd(input.Session)
-	if err != nil {
-		output.SetBase(core.ErrAPI, err.Error())
-	}
+	output := instance.UDPServer().AVEnd(udp.AVEndInput(input))
 
 	c.JSON(200, output)
 }

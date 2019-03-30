@@ -6,34 +6,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zhiqiangxu/qchat-video/pkg/instance"
 	"github.com/zhiqiangxu/qchat-video/pkg/udp"
-	"github.com/zhiqiangxu/qchat/pkg/core"
 )
 
 type (
 	// AVStartInput for input
-	AVStartInput struct {
-		Session udp.Session
-	}
+	AVStartInput udp.AVStartInput
 
 	// AVStartOutput for output
-	AVStartOutput struct {
-		core.BaseResp
-	}
+	AVStartOutput udp.AVStartOutput
 )
 
 // AVStart for av start
 func AVStart(c *gin.Context) {
+
 	var input AVStartInput
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	var output AVStartOutput
-	err := instance.UDPServer().AVStart(input.Session)
-	if err != nil {
-		output.SetBase(core.ErrAPI, err.Error())
-	}
+	output := instance.UDPServer().AVStart(udp.AVStartInput(input))
 
 	c.JSON(200, output)
 }

@@ -107,6 +107,8 @@ github.com/zhiqiangxu/qchat v0.0.0-20190325165639-c2b25ff07e13/go.mod h1:G2FzQrQ
 github.com/zhiqiangxu/qchat v0.0.0-20190325170414-bcb5cf6a7287/go.mod h1:bWCUDgx2jtsavZp1n72RS6HaRFUKppFwVqLLUwLjl6k=
 github.com/zhiqiangxu/qchat v0.0.0-20190328141255-b3fb9e390061 h1:yOgbqRVRKRhzULtYlltR6TB8qH6JBM8RjP0xG5TK580=
 github.com/zhiqiangxu/qchat v0.0.0-20190328141255-b3fb9e390061/go.mod h1:HMBRLaS/vuybW77Aq8909DRZC5PEMJjqikBUyjavziQ=
+github.com/zhiqiangxu/qchat v0.0.0-20190330071224-7e4b3e04aa50 h1:+8fi/aU601tu9cyFyuL5FIygJkpThEVU9QPVUsjpIas=
+github.com/zhiqiangxu/qchat v0.0.0-20190330071224-7e4b3e04aa50/go.mod h1:HMBRLaS/vuybW77Aq8909DRZC5PEMJjqikBUyjavziQ=
 github.com/zhiqiangxu/qchat-api v0.0.0-20190308090846-d4f862989470/go.mod h1:ZwrrEyvaPOj096uECb0ZsMfC5q+KyDQ88AjmfvrDRnc=
 github.com/zhiqiangxu/qchat-api v0.0.0-20190309134359-ae0935eeea32/go.mod h1:FknBX8TL7p6vXBWwV51rHAGqcrQQKJ802MJI5abftYc=
 github.com/zhiqiangxu/qchat-api v0.0.0-20190312043104-9e24d4ce1929/go.mod h1:hGT9x/8k8a24X7WuG8rpddIA8FOOBODfUTUUoiTYSI8=
