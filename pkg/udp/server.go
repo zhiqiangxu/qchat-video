@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"sync"
 	"sync/atomic"
 
@@ -46,13 +47,13 @@ type (
 		App    int
 		UIDs   []string
 		Type   SessionType
-		Port   int16
 		Secret string
 	}
 
 	// AVStartOutput for output
 	AVStartOutput struct {
 		core.BaseResp
+		Port int16
 	}
 )
 
@@ -93,10 +94,16 @@ func (s *Server) AVStart(input AVStartInput) (r AVStartOutput) {
 		return
 	}
 
-	serve := NewServe(input)
+	ln, err := randUDPListener()
+	if err != nil {
+		r.SetBase(core.ErrAPI, "no port available")
+		return
+	}
+	serve := NewServe(input, ln)
+	port := int16(ln.LocalAddr().(*net.UDPAddr).Port)
 
 	s.Lock()
-	if _, ok := s.serves[input.Port]; !ok {
+	if _, ok := s.serves[port]; !ok {
 		r.SetBase(core.ErrAlreadyInSession, "port already in use")
 		s.Unlock()
 		return
@@ -109,17 +116,19 @@ func (s *Server) AVStart(input AVStartInput) (r AVStartOutput) {
 		}
 	}
 
-	s.serves[input.Port] = serve
+	s.serves[port] = serve
 	for _, uid := range input.UIDs {
-		s.userSession[uid] = input.Port
+		s.userSession[uid] = port
 	}
+
+	err = serve.Start()
 	s.Unlock()
 
-	err := serve.Start()
 	if err != nil {
 		r.SetBase(core.ErrAPI, err.Error())
 		return
 	}
+	r.Port = port
 
 	return
 }
@@ -135,6 +144,20 @@ type (
 		core.BaseResp
 	}
 )
+
+func randUDPListener() (ln *net.UDPConn, err error) {
+	addr, err := net.ResolveUDPAddr("udp", "localhost:0")
+	if err != nil {
+		return
+	}
+
+	ln, err = net.ListenUDP("udp", addr)
+	if err != nil {
+		return
+	}
+
+	return
+}
 
 // AVEnd for end
 func (s *Server) AVEnd(input AVEndInput) (r AVEndOutput) {

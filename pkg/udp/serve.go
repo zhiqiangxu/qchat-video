@@ -23,24 +23,12 @@ type Serve struct {
 }
 
 // NewServe is ctor for Serve
-func NewServe(input AVStartInput) *Serve {
-	return &Serve{input: input}
+func NewServe(input AVStartInput, ln *net.UDPConn) *Serve {
+	return &Serve{input: input, ln: ln}
 }
 
 // Start serve
 func (sv *Serve) Start() (err error) {
-	addr := net.UDPAddr{
-		Port: int(sv.input.Port),
-		IP:   net.ParseIP("0.0.0.0"),
-	}
-	ln, err := net.ListenUDP("udp", &addr)
-	if err != nil {
-		return
-	}
-
-	sv.Lock()
-	sv.ln = ln
-	sv.Unlock()
 
 	qrpc.GoFunc(&sv.wg, sv.handlePackets)
 
